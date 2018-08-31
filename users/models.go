@@ -1,12 +1,11 @@
 package users
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
+	"github.com/dgraph-io/badger"
 	"github.com/idlatest/badge/common"
 )
 
@@ -14,6 +13,10 @@ type User struct {
 	Email     string    `json:"email"`
 	Password  string    `json:"password"`
 	CreatedAt time.Time `json:created_at`
+}
+
+type Response struct {
+	Token string `json:"token"`
 }
 
 func (u User) Add() error {
@@ -42,11 +45,27 @@ func (u User) Add() error {
 	return err
 }
 
-func (u User) login(w http.ResponseWriter, r *http.Request) {
-	var user User
+func (u User) Get(email string) (User, error) {
+	user := User{}
 
-	_ = json.NewDecoder(r.Body).Decode(&user)
+	db := common.Db()
 
-	fmt.Println("Login successful")
-	return
+	err := db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(email))
+		if err != nil {
+			return err
+		}
+
+		value, err := item.Value()
+		if err != nil {
+			return err
+		}
+
+		err = common.GetInterfaceFromGob(value, &user)
+
+		return err
+	})
+
+	// fmt.Println("Login successful")
+	return user, err
 }
