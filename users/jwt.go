@@ -6,7 +6,7 @@ import (
 
 var tokenAuth *jwtauth.JWTAuth
 
-func init() {
+func Init() {
 	tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
 }
 
