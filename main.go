@@ -8,8 +8,11 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
+	"github.com/gorilla/websocket"
 	"github.com/idlatest/badge/users"
 )
+
+var Upgrader websocket.Upgrader
 
 func Routes() *chi.Mux {
 	r := chi.NewRouter()
@@ -39,5 +42,17 @@ func Routes() *chi.Mux {
 
 }
 func main() {
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		conn, _ := Upgrader.Upgrade(w, r, nil)
+
+		go func(conn *websocket.Conn) {
+			for {
+				messageType, msg, _ := conn.ReadMessage()
+
+				conn.WriteMessage(messageType, msg)
+			}
+		}(conn)
+	})
+
 	http.ListenAndServe(":3000", Routes())
 }
