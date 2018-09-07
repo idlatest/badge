@@ -54,5 +54,5 @@ func main() {
 		}(conn)
 	})
 
-	http.ListenAndServe(":3000", Routes())
+	http.ListenAndServe(":3000", nil)
 }
