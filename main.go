@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -42,7 +43,11 @@ func Routes() *chi.Mux {
 
 }
 func main() {
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	router := Routes()
+	router.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("pong"))
+	})
+	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		conn, _ := Upgrader.Upgrade(w, r, nil)
 
 		go func(conn *websocket.Conn) {
@@ -54,5 +59,6 @@ func main() {
 		}(conn)
 	})
 
-	http.ListenAndServe(":3000", nil)
+	log.Println("Serving at :3000")
+	log.Fatal(http.ListenAndServe(":3000", router))
 }
